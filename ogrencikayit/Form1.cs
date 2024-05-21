@@ -16,21 +16,14 @@ namespace ogrencikayit
 {
     public partial class Form1 : Form
     {
+      
         MySqlConnection connection;
-        DataTable table;
-        MySqlDataAdapter adapter;
+        DataTable table;   
         MySqlCommand komut;
+        MySqlDataReader reader;
+        string baglanticumlesi = "Server=localhost;Database=ogrenci;Uid=root;Pwd=1234;";
 
-        string baglanticumlesi = "Server=localhost;Database=ögrenciii;Uid=root;Pwd=1234;";
 
-        public MySqlConnection baglan()
-        {
-
-           
-            
-            MySqlConnection.ClearPool(connection);
-            return connection;
-        }
         public Form1()
         {
             InitializeComponent();
@@ -40,41 +33,42 @@ namespace ogrencikayit
         {
             Listele();
         }
-
+       
         private void Listele()
         {
+
+
             connection = new MySqlConnection(baglanticumlesi);
+            connection.Open();
+            komut = new MySqlCommand("SELECT * FROM ogrenci.ogrenci", connection);
+
             
-           adapter = new MySqlDataAdapter("SELECT * FROM ögrenciii.ogrenci", baglanticumlesi);
-           table = new DataTable();
-          connection.Open();
-            adapter.Fill(table);
+            
+            table = new DataTable();
+            reader = komut.ExecuteReader();
+            table.Load(reader);
+
+
+
             gridadam.DataSource = table;
             connection.Close();
 
 
         }
-        public void temizle()
-        {
-            txtad.Clear();
-            txtno.Clear();
-            txtsoyad.Clear();
-            txttel.Clear();
-        }
-        string eklekodu;
+      
         private void btnekle_Click(object sender, EventArgs e)
         {
-            komut=new MySqlCommand();
+          
+            komut = new MySqlCommand();
             connection.Open();
             
             komut.Connection = connection;
-            komut.CommandText= "INSERT INTO ogrenci(no,ad,soyad,tel)values ('" + txtno.Text + "','" + txtad.Text + "','" + txtsoyad.Text + "','" + txttel.Text + "')"; ;
-            //eklekodu = 
-            
-            //komut.Parameters.AddWithValue("@no", int.Parse(txtno.Text));
-           // komut.Parameters.AddWithValue("@ad",txtad.Text);
-           // komut.Parameters.AddWithValue("@soyad",txtsoyad.Text);
-           // komut.Parameters.AddWithValue("@tel",txttel.Text);
+            komut.CommandText= "INSERT INTO ogrenci(no,ad,soyad,tel)values (@no,@ad,@soyad,@tel)";
+
+            komut.Parameters.AddWithValue("@no", int.Parse(txtno.Text));
+            komut.Parameters.AddWithValue("@ad", txtad.Text);
+            komut.Parameters.AddWithValue("@soyad", txtsoyad.Text);
+            komut.Parameters.AddWithValue("@tel", txttel.Text);
             komut.ExecuteNonQuery(); 
             connection.Close();
             Listele();
@@ -82,22 +76,29 @@ namespace ogrencikayit
 
         private void btngüncelle_Click(object sender, EventArgs e)
         {
-            komut=new MySqlCommand();
+            komut = new MySqlCommand();
             connection.Open();
+
             komut.Connection = connection;
-            komut.CommandText = "update ogrenci set ad='" + txtad + "',soyad='" + txtsoyad + "',tel='" + txttel.Text + "'where no='" + txtno.Text + "";
+            komut.CommandText = "update ogrenci set ad=@ad,soyad=@soyad,tel=@tel  where no=@no";
+          
+
+            komut.Parameters.AddWithValue("@no", int.Parse(txtno.Text));
+            komut.Parameters.AddWithValue("@ad", txtad.Text);
+            komut.Parameters.AddWithValue("@soyad", txtsoyad.Text);
+            komut.Parameters.AddWithValue("@tel", txttel.Text);
             komut.ExecuteNonQuery();
             connection.Close();
             Listele();
-
         }
 
         private void btnsil_Click(object sender, EventArgs e)
         {
+            
             komut =new MySqlCommand();
             connection.Open();
             komut.Connection = connection;
-            komut.CommandText = "delete from ogrenci where no=" + txtno + "";
+            komut.CommandText = "delete from ogrenci where no=" + int.Parse(txtno.Text);
             komut.ExecuteNonQuery();
             connection.Close();
             Listele();
@@ -106,13 +107,21 @@ namespace ogrencikayit
 
         private void txtarama_TextChanged(object sender, EventArgs e)
         {
-            connection=new MySqlConnection("Server=localhost;Database=ögrenciii;Uid=root;Pwd=1234;");
-            adapter=new MySqlDataAdapter("select * from ogrenci where ad like '"+txtarama.Text+"%'", connection);
-            table = new DataTable();
+            connection = new MySqlConnection(baglanticumlesi);
             connection.Open();
-            adapter.Fill(table);
+            komut = new MySqlCommand("select * from ogrenci where ad like '" + txtarama.Text + "%'", connection);
+
+
+
+            table = new DataTable();
+            reader = komut.ExecuteReader();
+            table.Load(reader);
+
+
+
             gridadam.DataSource = table;
             connection.Close();
+          
         }
 
         private void gridadam_CellContentClick(object sender, DataGridViewCellEventArgs e)
